@@ -46,13 +46,13 @@ public class StocksObserver {
         threadPool.submit(() ->
             stocksSubscribers.get(stock.getTicker())
                             .parallelStream()
-                            .forEach(client -> safeFeedClient(client, (stock.getPrice()))));
+                            .forEach(client -> safeFeedClient(client, (stock))));
     }
 
-    private void safeFeedClient(IClient client, String price) {
+    private void safeFeedClient(IClient client, Stock stock) {
         try {
-            logger.info("Notifying " + client);
-            client.notify(price);
+            logger.info("Notifying " + client + ". Stock: " + stock.getTicker());
+            client.notify(stock);
         } catch (Exception ex) {
             logger.warn("Unsubscribing " + client);
             client.close(ex);
@@ -60,28 +60,30 @@ public class StocksObserver {
         }
     }
 
-    public void subscribe(String ticker, IClient client) {
-        stocksSubscribers.compute(ticker, (tck, clients) -> {
-            if (Objects.isNull(clients)) {
-                ArrayList<IClient> newList = new ArrayList<>();
-                newList.add(client);
-                return Collections.synchronizedList(newList);
-            } else {
-                clients.add(client);
-                return clients;
-            }
-        });
+    public void subscribe(List<String> tickers, IClient client) {
+        for (String ticker : tickers) {
+            stocksSubscribers.compute(ticker, (tck, clients) -> {
+                if (Objects.isNull(clients)) {
+                    ArrayList<IClient> newList = new ArrayList<>();
+                    newList.add(client);
+                    return Collections.synchronizedList(newList);
+                } else {
+                    clients.add(client);
+                    return clients;
+                }
+            });
 
-        subscribersStocks.compute(client, (clt, tcks) -> {
-            if (Objects.isNull(tcks)) {
-                ArrayList<String> newList = new ArrayList<>();
-                newList.add(ticker);
-                return Collections.synchronizedList(newList);
-            } else {
-                tcks.add(ticker);
-                return tcks;
-            }
-        });
+            subscribersStocks.compute(client, (clt, tcks) -> {
+                if (Objects.isNull(tcks)) {
+                    ArrayList<String> newList = new ArrayList<>();
+                    newList.add(ticker);
+                    return Collections.synchronizedList(newList);
+                } else {
+                    tcks.add(ticker);
+                    return tcks;
+                }
+            });
+        }
     }
 
     public void unsubscribe(IClient client) {

@@ -5,21 +5,23 @@ import java.time.LocalTime;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter.SseEventBuilder;
 
+import com.ghgs.homebroker.market.Stock;
+
 public class PriceEmitter implements IClient {
 
-    private String ticker;
+    private String tickers;
 
     private SseEmitter emitter;
 
-    public PriceEmitter(String ticker, SseEmitter emitter) {
-        this.ticker = ticker;
+    public PriceEmitter(String tickers, SseEmitter emitter) {
+        this.tickers = tickers;
         this.emitter = emitter;
     }
 
     @Override
-    public void notify(String price) throws Exception {
+    public void notify(Stock stock) throws Exception {
         SseEventBuilder event = SseEmitter.event()
-            .data("Symbol: " + ticker + ". Price: " + price + ". Time: "  + LocalTime.now().toString())
+            .data("Symbol: " + stock.getTicker() + ". Price: " + stock.getPrice() + ". Time: "  + LocalTime.now().toString())
             .id(String.valueOf(this.hashCode()))
             .name("Stock Price");
             
@@ -33,7 +35,7 @@ public class PriceEmitter implements IClient {
 
     @Override
     public String toString() {
-        return "Client: " + emitter.toString() + " for stock: " + ticker;
+        return "Client: " + emitter.toString();
     }
 
     @Override
@@ -52,7 +54,7 @@ public class PriceEmitter implements IClient {
     public final int hashCode() {
         return 31 * 16 +
             this.emitter.toString().hashCode() +
-            this.ticker.hashCode();
+            this.tickers.hashCode();
     }
 
 }

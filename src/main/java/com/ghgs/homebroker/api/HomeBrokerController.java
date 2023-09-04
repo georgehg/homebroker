@@ -1,5 +1,7 @@
 package com.ghgs.homebroker.api;
 
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,9 +21,10 @@ public class HomeBrokerController{
     private StocksObserver stocksObserver;
 
     @GetMapping(path = "/prices", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter stockPrices(@RequestParam(value = "ticker")  String ticker) {
+    public SseEmitter stockPrices(@RequestParam(value = "tickers")  String tickers) {
         SseEmitter emitter = new SseEmitter(300000L);
-        stocksObserver.subscribe(ticker, new PriceEmitter(ticker, emitter));
+        String[] tickerList = tickers.split(",");
+        stocksObserver.subscribe(Arrays.asList(tickerList), new PriceEmitter(tickers, emitter));
         return emitter;
     }
 
