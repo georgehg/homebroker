@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
 import com.ghgs.homebroker.client.IClient;
 
@@ -58,7 +59,7 @@ public class StocksObserver {
         }
     }
 
-    public void subscribe(IClient client) {
+    public ResponseBodyEmitter subscribe(IClient client) {
         for (String ticker : client.getTickers()) {
             stocksSubscribers.compute(ticker, (tck, clients) -> {
                 if (Objects.isNull(clients)) {
@@ -71,6 +72,7 @@ public class StocksObserver {
                 }
             });
         }
+        return client.getEmitter();
     }
 
     public void unsubscribe(IClient client) {

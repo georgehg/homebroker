@@ -17,10 +17,10 @@ public class PriceEmitter implements IClient {
 
     private SseEmitter emitter;
 
-    public PriceEmitter(List<String> tickers, SseEmitter emitter) {
+    public PriceEmitter(List<String> tickers) {
         this.clientId = UUID.randomUUID();
         this.tickers = tickers;
-        this.emitter = emitter;
+        this.emitter = new SseEmitter(300000L);
     }
 
     @Override
@@ -44,6 +44,10 @@ public class PriceEmitter implements IClient {
 
     public List<String> getTickers() {
         return this.tickers;
+    }
+
+    public SseEmitter getEmitter() {
+        return emitter;
     }
 
     @Override
