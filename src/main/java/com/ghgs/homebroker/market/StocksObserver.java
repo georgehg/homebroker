@@ -28,8 +28,6 @@ public class StocksObserver {
 
     private Map<String, List<IClient>> stocksSubscribers = new HashMap<>();
 
-    private Map<IClient, List<String>> subscribersStocks = new HashMap<>();
-
     private ForkJoinPool threadPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 100);
 
     @Scheduled(fixedDelay = 5000)
@@ -55,13 +53,13 @@ public class StocksObserver {
             client.notify(stock);
         } catch (Exception ex) {
             logger.warn("Unsubscribing " + client);
-            client.close(ex);
             unsubscribe(client);
+            client.close(ex);
         }
     }
 
-    public void subscribe(List<String> tickers, IClient client) {
-        for (String ticker : tickers) {
+    public void subscribe(IClient client) {
+        for (String ticker : client.getTickers()) {
             stocksSubscribers.compute(ticker, (tck, clients) -> {
                 if (Objects.isNull(clients)) {
                     ArrayList<IClient> newList = new ArrayList<>();
@@ -72,26 +70,13 @@ public class StocksObserver {
                     return clients;
                 }
             });
-
-            subscribersStocks.compute(client, (clt, tcks) -> {
-                if (Objects.isNull(tcks)) {
-                    ArrayList<String> newList = new ArrayList<>();
-                    newList.add(ticker);
-                    return Collections.synchronizedList(newList);
-                } else {
-                    tcks.add(ticker);
-                    return tcks;
-                }
-            });
         }
     }
 
     public void unsubscribe(IClient client) {
-        subscribersStocks.get(client)
-                        .stream()
-                        .forEach(ticker -> this.removeClient(ticker, client));
-                        
-        subscribersStocks.remove(client);
+        client.getTickers()
+            .stream()
+            .forEach(ticker -> this.removeClient(ticker, client));
     }
 
     private void removeClient(String ticker, IClient client) {

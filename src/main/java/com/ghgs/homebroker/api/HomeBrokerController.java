@@ -24,7 +24,7 @@ public class HomeBrokerController{
     public SseEmitter stockPrices(@RequestParam(value = "tickers")  String tickers) {
         SseEmitter emitter = new SseEmitter(300000L);
         String[] tickerList = tickers.split(",");
-        stocksObserver.subscribe(Arrays.asList(tickerList), new PriceEmitter(tickers, emitter));
+        stocksObserver.subscribe(new PriceEmitter(Arrays.asList(tickerList), emitter));
         return emitter;
     }
 
